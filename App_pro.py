@@ -82,42 +82,43 @@ def test_proportion_general(
             )
 
     elif alternative == "left":
-        quantile = norm.ppf(alpha)
+        quantile = norm.ppf(alpha)          # négatif
+        z_alpha = norm.ppf(1 - alpha)       # positif
         rejet = statistique < quantile
         p_value = norm.cdf(statistique)
         H1 = f"p < {p0}"
 
         if rejet:
             conclusion = (
-                rf"Comme $Z_{{obs}} = {statistique:.4f} < {quantile:.4f} = z_{{\alpha}}$, "
+                rf"Comme $Z_{{obs}} = {statistique:.4f} < {quantile:.4f} = -z_{{\alpha}}$, "
                 rf"la statistique observée appartient à la zone de rejet. "
                 rf"On rejette donc $H_0$ au seuil de {alpha_label}. "
                 rf"La proportion est statistiquement (ou significativement) inférieure à {p0}."
             )
         else:
             conclusion = (
-                rf"Comme $Z_{{obs}} = {statistique:.4f} > {quantile:.4f} = z_{{\alpha}}$, "
+                rf"Comme $Z_{{obs}} = {statistique:.4f} > {quantile:.4f} = -z_{{\alpha}}$, "
                 rf"la statistique observée appartient à la zone de non rejet. "
                 rf"On ne rejette pas donc $H_0$ au seuil de {alpha_label}. "
                 rf"La proportion n'est pas statistiquement (ou significativement) inférieure à {p0}."
             )
 
     else:
-        quantile = norm.ppf(1 - alpha)
+        quantile = norm.ppf(1 - alpha)      # positif
         rejet = statistique > quantile
         p_value = 1 - norm.cdf(statistique)
         H1 = f"p > {p0}"
 
         if rejet:
             conclusion = (
-                rf"Comme $Z_{{obs}} = {statistique:.4f} > {quantile:.4f} = z_{{1-\alpha}}$, "
+                rf"Comme $Z_{{obs}} = {statistique:.4f} > {quantile:.4f} = z_{{\alpha}}$, "
                 rf"la statistique observée appartient à la zone de rejet. "
                 rf"On rejette donc $H_0$ au seuil de {alpha_label}. "
                 rf"La proportion est statistiquement (ou significativement) supérieure à {p0}."
             )
         else:
             conclusion = (
-                rf"Comme $Z_{{obs}} = {statistique:.4f} < {quantile:.4f} = z_{{1-\alpha}}$, "
+                rf"Comme $Z_{{obs}} = {statistique:.4f} < {quantile:.4f} = z_{{\alpha}}$, "
                 rf"la statistique observée appartient à la zone de non rejet. "
                 rf"On ne rejette pas donc $H_0$ au seuil de {alpha_label}. "
                 rf"La proportion n'est pas statistiquement (ou significativement) supérieure à {p0}."
@@ -439,10 +440,10 @@ if st.button("Effectuer le test"):
 
         elif resultats["alternative"] == "left":
             st.markdown(
-                r"Comme le test est unilatéral gauche, on prend le quantile $z_{\alpha}$."
+                r"Comme le test est unilatéral gauche, on prend le quantile $-z_{\alpha}$."
             )
             st.markdown(
-                rf"On rejette $H_0$ si $Z_{{obs}} < z_{{\alpha}} = z_{{{format_prob_clean(resultats['alpha'])}}} = {resultats['quantile_critique']:.4f}$."
+                rf"On rejette $H_0$ si $Z_{{obs}} < -z_{{\alpha}} = -z_{{{format_prob_clean(resultats['alpha'])}}} = {resultats['quantile_critique']:.4f}$."
             )
             symbole = "<" if resultats["rejet_H0"] else ">"
             st.latex(
@@ -451,10 +452,10 @@ if st.button("Effectuer le test"):
 
         else:
             st.markdown(
-                r"Comme le test est unilatéral droit, on prend le quantile $z_{1-\alpha}$."
+                r"Comme le test est unilatéral droit, on prend le quantile $z_{\alpha}$."
             )
             st.markdown(
-                rf"On rejette $H_0$ si $Z_{{obs}} > z_{{1-\alpha}} = z_{{{format_prob_clean(1-resultats['alpha'])}}} = {resultats['quantile_critique']:.4f}$."
+                rf"On rejette $H_0$ si $Z_{{obs}} > z_{{\alpha}} = z_{{{format_prob_clean(resultats['alpha'])}}} = {resultats['quantile_critique']:.4f}$."
             )
             symbole = ">" if resultats["rejet_H0"] else "<"
             st.latex(
