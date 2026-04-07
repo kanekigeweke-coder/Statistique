@@ -8,6 +8,32 @@ from scipy.stats import norm
 st.set_page_config(page_title="Test sur une proportion", layout="wide")
 
 
+def format_percent_clean(alpha: float) -> str:
+    """
+    Formate alpha en pourcentage sans décimales inutiles.
+    Exemples :
+    0.05   -> 5%
+    0.025  -> 2.5%
+    0.1234 -> 12.34%
+    """
+    val = 100 * alpha
+    if abs(val - round(val)) < 1e-10:
+        return f"{int(round(val))}%"
+    txt = f"{val:.2f}".rstrip("0").rstrip(".")
+    return f"{txt}%"
+
+
+def format_prob_clean(x: float) -> str:
+    """
+    Formate une probabilité décimale sans zéros inutiles.
+    Exemples :
+    0.025 -> 0.025
+    0.05  -> 0.05
+    0.5   -> 0.5
+    """
+    return f"{x:.4f}".rstrip("0").rstrip(".")
+
+
 def test_proportion_general(
     p0: float,
     n: int,
@@ -46,69 +72,79 @@ def test_proportion_general(
     variance_sous_H0 = p0 * (1 - p0) / n
     statistique = (p_hat - p0) / erreur_standard
 
+    alpha_label = format_percent_clean(alpha)
+    alpha_sur_2_label = format_prob_clean(alpha / 2)
+    alpha_label_prob = format_prob_clean(alpha)
+    un_moins_alpha_label = format_prob_clean(1 - alpha)
+
     if alternative == "bilateral":
         quantile = norm.ppf(1 - alpha / 2)
         rejet = abs(statistique) > quantile
         p_value = 2 * (1 - norm.cdf(abs(statistique)))
         H1 = f"p \\neq {p0}"
+        etiquette_quantile = f"z_{{\\alpha/2}} = z_{{{alpha_sur_2_label}}}"
+
+        if rejet:
+            conclusion = (
+                f"Comme |Z_obs| = {abs(statistique):.4f} > {quantile:.4f} = z_(α/2), "
+                f"la statistique observée appartient à la zone de rejet. "
+                f"On rejette donc H₀ au seuil de {alpha_label}. "
+                f"La proportion est statistiquement différente de {p0}. "
+                f"On dispose donc de suffisamment de preuves statistiques pour rejeter H₀."
+            )
+        else:
+            conclusion = (
+                f"Comme |Z_obs| = {abs(statistique):.4f} < {quantile:.4f} = z_(α/2), "
+                f"la statistique observée appartient à la zone de non rejet. "
+                f"On ne rejette pas donc H₀ au seuil de {alpha_label}. "
+                f"La proportion n'est pas statistiquement différente de {p0}. "
+                f"On n'a donc pas suffisamment de preuves statistiques pour conclure que la proportion est différente de {p0}."
+            )
+
     elif alternative == "left":
         quantile = norm.ppf(alpha)
         rejet = statistique < quantile
         p_value = norm.cdf(statistique)
         H1 = f"p < {p0}"
-    else:
-        quantile = norm.ppf(1 - alpha)
-        rejet = statistique > quantile
-        p_value = 1 - norm.cdf(statistique)
-        H1 = f"p > {p0}"
+        etiquette_quantile = f"z_{{\\alpha}} = z_{{{alpha_label_prob}}}"
 
-    if rejet:
-        if alternative == "bilateral":
+        if rejet:
             conclusion = (
-                f"Comme |Z_obs| = {abs(statistique):.4f} > {quantile:.4f}, "
-                f"la statistique observée appartient à la zone de rejet, "
-                f"on rejette H₀ au seuil de {100*alpha:.0f}%. "
-                f"La proportion est statistiquement différente de {p0}. "
-                f"On dispose donc de suffisamment de preuves statistiques pour rejeter H₀."
-            )
-        elif alternative == "left":
-            conclusion = (
-                f"Comme Z_obs = {statistique:.4f} < {quantile:.4f}, "
-                f"la statistique observée appartient à la zone de rejet, "
-                f"on rejette H₀ au seuil de {100*alpha:.0f}%. "
+                f"Comme Z_obs = {statistique:.4f} < {quantile:.4f} = z_(α), "
+                f"la statistique observée appartient à la zone de rejet. "
+                f"On rejette donc H₀ au seuil de {alpha_label}. "
                 f"La proportion est statistiquement inférieure à {p0}. "
                 f"On dispose donc de suffisamment de preuves statistiques pour rejeter H₀."
             )
         else:
             conclusion = (
-                f"Comme Z_obs = {statistique:.4f} > {quantile:.4f}, "
-                f"la statistique observée appartient à la zone de rejet, "
-                f"on rejette H₀ au seuil de {100*alpha:.0f}%. "
-                f"La proportion est statistiquement supérieure à {p0}. "
-                f"On dispose donc de suffisamment de preuves statistiques pour rejeter H₀."
-            )
-    else:
-        if alternative == "bilateral":
-            conclusion = (
-                f"Comme |Z_obs| = {abs(statistique):.4f} < {quantile:.4f}, "
-                f"la statistique observée appartient à la zone de non rejet, "
-                f"on ne rejette pas H₀ au seuil de {100*alpha:.0f}%. "
-                f"La proportion n'est pas statistiquement différente de {p0}. "
-                f"On n'a donc pas suffisamment de preuves statistiques pour conclure que la proportion est différente de {p0}."
-            )
-        elif alternative == "left":
-            conclusion = (
-                f"Comme Z_obs = {statistique:.4f} > {quantile:.4f}, "
-                f"la statistique observée appartient à la zone de non rejet, "
-                f"on ne rejette pas H₀ au seuil de {100*alpha:.0f}%. "
+                f"Comme Z_obs = {statistique:.4f} > {quantile:.4f} = z_(α), "
+                f"la statistique observée appartient à la zone de non rejet. "
+                f"On ne rejette pas donc H₀ au seuil de {alpha_label}. "
                 f"La proportion n'est pas statistiquement inférieure à {p0}. "
                 f"On n'a donc pas suffisamment de preuves statistiques pour conclure que la proportion est inférieure à {p0}."
             )
+
+    else:
+        quantile = norm.ppf(1 - alpha)
+        rejet = statistique > quantile
+        p_value = 1 - norm.cdf(statistique)
+        H1 = f"p > {p0}"
+        etiquette_quantile = f"z_{{1-\\alpha}} = z_{{{un_moins_alpha_label}}}"
+
+        if rejet:
+            conclusion = (
+                f"Comme Z_obs = {statistique:.4f} > {quantile:.4f} = z_(1-α), "
+                f"la statistique observée appartient à la zone de rejet. "
+                f"On rejette donc H₀ au seuil de {alpha_label}. "
+                f"La proportion est statistiquement supérieure à {p0}. "
+                f"On dispose donc de suffisamment de preuves statistiques pour rejeter H₀."
+            )
         else:
             conclusion = (
-                f"Comme Z_obs = {statistique:.4f} < {quantile:.4f}, "
-                f"la statistique observée appartient à la zone de non rejet, "
-                f"on ne rejette pas H₀ au seuil de {100*alpha:.0f}%. "
+                f"Comme Z_obs = {statistique:.4f} < {quantile:.4f} = z_(1-α), "
+                f"la statistique observée appartient à la zone de non rejet. "
+                f"On ne rejette pas donc H₀ au seuil de {alpha_label}. "
                 f"La proportion n'est pas statistiquement supérieure à {p0}. "
                 f"On n'a donc pas suffisamment de preuves statistiques pour conclure que la proportion est supérieure à {p0}."
             )
@@ -120,6 +156,7 @@ def test_proportion_general(
         "p_hat": p_hat,
         "p0": p0,
         "alpha": alpha,
+        "alpha_label": alpha_label,
         "alternative": alternative,
         "nom_statistique": "Z",
         "statistique_test": statistique,
@@ -130,7 +167,8 @@ def test_proportion_general(
         "conclusion": conclusion,
         "erreur_standard": erreur_standard,
         "variance_sous_H0": variance_sous_H0,
-        "loi": "Normale asymptotique"
+        "loi": "Normale asymptotique",
+        "etiquette_quantile": etiquette_quantile
     }
 
 
@@ -148,20 +186,24 @@ def tracer_distribution_proportion(resultats: dict):
     fig, ax = plt.subplots(figsize=(10, 5.2))
     ax.plot(x, y, color="black", linewidth=1.5)
 
-    alpha_pct = f"{100 * alpha:.0f}%"
-    alpha_half_pct = f"{100 * (alpha / 2):.1f}%"
-    non_rejet_pct = f"{100 * (1 - alpha):.0f}%"
+    alpha_pct = format_percent_clean(alpha)
+    alpha_half_pct = format_percent_clean(alpha / 2)
+    non_rejet_pct = format_percent_clean(1 - alpha)
 
     if alternative == "bilateral":
         mask_L = x <= -quantile
         mask_C = (x >= -quantile) & (x <= quantile)
         mask_R = x >= quantile
 
-        ax.fill_between(x, 0, y, where=mask_L, color="gray", alpha=0.5,
-                        label=f"Zone de rejet (α/2 = {alpha_half_pct})")
+        ax.fill_between(
+            x, 0, y, where=mask_L, color="gray", alpha=0.5,
+            label=f"Zone de rejet (α/2 = {alpha_half_pct})"
+        )
         ax.fill_between(x, 0, y, where=mask_R, color="gray", alpha=0.5)
-        ax.fill_between(x, 0, y, where=mask_C, color="lightblue", alpha=0.3,
-                        label=f"Zone de non-rejet ({non_rejet_pct})")
+        ax.fill_between(
+            x, 0, y, where=mask_C, color="lightblue", alpha=0.3,
+            label=f"Zone de non-rejet ({non_rejet_pct})"
+        )
 
         ax.axvline(-quantile, color="black", linewidth=1.2, linestyle="--")
         ax.axvline(quantile, color="black", linewidth=1.2, linestyle="--")
@@ -181,10 +223,14 @@ def tracer_distribution_proportion(resultats: dict):
         mask_L = x <= quantile
         mask_C = x >= quantile
 
-        ax.fill_between(x, 0, y, where=mask_L, color="gray", alpha=0.5,
-                        label=f"Zone de rejet (α = {alpha_pct})")
-        ax.fill_between(x, 0, y, where=mask_C, color="lightblue", alpha=0.3,
-                        label=f"Zone de non-rejet ({non_rejet_pct})")
+        ax.fill_between(
+            x, 0, y, where=mask_L, color="gray", alpha=0.5,
+            label=f"Zone de rejet (α = {alpha_pct})"
+        )
+        ax.fill_between(
+            x, 0, y, where=mask_C, color="lightblue", alpha=0.3,
+            label=f"Zone de non-rejet ({non_rejet_pct})"
+        )
 
         ax.axvline(quantile, color="black", linewidth=1.2, linestyle="--")
         ax.text(quantile - 0.5, max(y) * 0.12, alpha_pct, fontsize=9, ha="center", color="dimgray")
@@ -200,10 +246,14 @@ def tracer_distribution_proportion(resultats: dict):
         mask_C = x <= quantile
         mask_R = x >= quantile
 
-        ax.fill_between(x, 0, y, where=mask_R, color="gray", alpha=0.5,
-                        label=f"Zone de rejet (α = {alpha_pct})")
-        ax.fill_between(x, 0, y, where=mask_C, color="lightblue", alpha=0.3,
-                        label=f"Zone de non-rejet ({non_rejet_pct})")
+        ax.fill_between(
+            x, 0, y, where=mask_R, color="gray", alpha=0.5,
+            label=f"Zone de rejet (α = {alpha_pct})"
+        )
+        ax.fill_between(
+            x, 0, y, where=mask_C, color="lightblue", alpha=0.3,
+            label=f"Zone de non-rejet ({non_rejet_pct})"
+        )
 
         ax.axvline(quantile, color="black", linewidth=1.2, linestyle="--")
         ax.text(quantile + 0.5, max(y) * 0.12, alpha_pct, fontsize=9, ha="center", color="dimgray")
@@ -384,7 +434,7 @@ if st.button("Effectuer le test"):
                 rf"\hat{{p}} \approx {resultats['p_hat']:.4f}"
             )
 
-        st.markdown(f"**Test sur la proportion au niveau α = {resultats['alpha']:.0%}**")
+        st.markdown(f"**Test sur la proportion au niveau α = {resultats['alpha_label']}**")
 
         st.markdown("**i) Les hypothèses du test :**")
         st.latex(rf"H_0 :\ p = {resultats['p0']}")
@@ -416,7 +466,7 @@ if st.button("Effectuer le test"):
 
         if resultats["alternative"] == "bilateral":
             st.write(
-                f"On rejette H₀ si |Z_obs| > z_(α/2) = z_({resultats['alpha']/2:.3f}) = {resultats['quantile_critique']:.4f}."
+                f"On rejette H₀ si |Z_obs| > z_(α/2) = z_({format_prob_clean(resultats['alpha']/2)}) = {resultats['quantile_critique']:.4f}."
             )
             symbole = ">" if resultats["rejet_H0"] else "<"
             st.latex(
@@ -424,7 +474,7 @@ if st.button("Effectuer le test"):
             )
         elif resultats["alternative"] == "left":
             st.write(
-                f"On rejette H₀ si Z_obs < z_(α) = z_({resultats['alpha']:.3f}) = {resultats['quantile_critique']:.4f}."
+                f"On rejette H₀ si Z_obs < z_(α) = z_({format_prob_clean(resultats['alpha'])}) = {resultats['quantile_critique']:.4f}."
             )
             symbole = "<" if resultats["rejet_H0"] else ">"
             st.latex(
@@ -432,7 +482,7 @@ if st.button("Effectuer le test"):
             )
         else:
             st.write(
-                f"On rejette H₀ si Z_obs > z_(1-α) = z_({1-resultats['alpha']:.3f}) = {resultats['quantile_critique']:.4f}."
+                f"On rejette H₀ si Z_obs > z_(1-α) = z_({format_prob_clean(1-resultats['alpha'])}) = {resultats['quantile_critique']:.4f}."
             )
             symbole = ">" if resultats["rejet_H0"] else "<"
             st.latex(
