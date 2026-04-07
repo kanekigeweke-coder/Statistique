@@ -427,6 +427,9 @@ if st.button("Effectuer le test"):
 
         if resultats["alternative"] == "bilateral":
             st.markdown(
+                r"Comme le test est bilatéral, on prend le quantile $z_{\alpha/2}$."
+            )
+            st.markdown(
                 rf"On rejette $H_0$ si $|Z_{{obs}}| > z_{{\alpha/2}} = z_{{{format_prob_clean(resultats['alpha']/2)}}} = {resultats['quantile_critique']:.4f}$."
             )
             symbole = ">" if resultats["rejet_H0"] else "<"
@@ -436,6 +439,9 @@ if st.button("Effectuer le test"):
 
         elif resultats["alternative"] == "left":
             st.markdown(
+                r"Comme le test est unilatéral gauche, on prend le quantile $z_{\alpha}$."
+            )
+            st.markdown(
                 rf"On rejette $H_0$ si $Z_{{obs}} < z_{{\alpha}} = z_{{{format_prob_clean(resultats['alpha'])}}} = {resultats['quantile_critique']:.4f}$."
             )
             symbole = "<" if resultats["rejet_H0"] else ">"
@@ -444,6 +450,9 @@ if st.button("Effectuer le test"):
             )
 
         else:
+            st.markdown(
+                r"Comme le test est unilatéral droit, on prend le quantile $z_{1-\alpha}$."
+            )
             st.markdown(
                 rf"On rejette $H_0$ si $Z_{{obs}} > z_{{1-\alpha}} = z_{{{format_prob_clean(1-resultats['alpha'])}}} = {resultats['quantile_critique']:.4f}$."
             )
