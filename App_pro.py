@@ -97,8 +97,7 @@ def test_proportion_general(
                 f"Comme |Z_obs| = {abs(statistique):.4f} < {quantile:.4f} = z_(α/2), "
                 f"la statistique observée appartient à la zone de non rejet. "
                 f"On ne rejette pas donc H₀ au seuil de {alpha_label}. "
-                f"La proportion n'est pas statistiquement différente de {p0}. "
-                f"On n'a donc pas suffisamment de preuves statistiques pour conclure que la proportion est différente de {p0}."
+                f"La proportion n'est pas statistiquement différente de {p0}."
             )
 
     elif alternative == "left":
@@ -121,8 +120,7 @@ def test_proportion_general(
                 f"Comme Z_obs = {statistique:.4f} > {quantile:.4f} = z_(α), "
                 f"la statistique observée appartient à la zone de non rejet. "
                 f"On ne rejette pas donc H₀ au seuil de {alpha_label}. "
-                f"La proportion n'est pas statistiquement inférieure à {p0}. "
-                f"On n'a donc pas suffisamment de preuves statistiques pour conclure que la proportion est inférieure à {p0}."
+                f"La proportion n'est pas statistiquement inférieure à {p0}."
             )
 
     else:
@@ -145,8 +143,7 @@ def test_proportion_general(
                 f"Comme Z_obs = {statistique:.4f} < {quantile:.4f} = z_(1-α), "
                 f"la statistique observée appartient à la zone de non rejet. "
                 f"On ne rejette pas donc H₀ au seuil de {alpha_label}. "
-                f"La proportion n'est pas statistiquement supérieure à {p0}. "
-                f"On n'a donc pas suffisamment de preuves statistiques pour conclure que la proportion est supérieure à {p0}."
+                f"La proportion n'est pas statistiquement supérieure à {p0}."
             )
 
     return {
@@ -465,24 +462,26 @@ if st.button("Effectuer le test"):
         st.markdown("**iii) Règle de décision**")
 
         if resultats["alternative"] == "bilateral":
-            st.write(
-                f"On rejette H₀ si |Z_obs| > z_(α/2) = z_({format_prob_clean(resultats['alpha']/2)}) = {resultats['quantile_critique']:.4f}."
+            st.latex(
+                rf"\text{{On rejette }} H_0 \text{{ si }} |Z_{{obs}}| > z_{{\alpha/2}} = z_{{{format_prob_clean(resultats['alpha']/2)}}} = {resultats['quantile_critique']:.4f}"
             )
             symbole = ">" if resultats["rejet_H0"] else "<"
             st.latex(
                 rf"|Z_{{obs}}| = {abs(resultats['statistique_test']):.4f} {symbole} {resultats['quantile_critique']:.4f}"
             )
+
         elif resultats["alternative"] == "left":
-            st.write(
-                f"On rejette H₀ si Z_obs < z_(α) = z_({format_prob_clean(resultats['alpha'])}) = {resultats['quantile_critique']:.4f}."
+            st.latex(
+                rf"\text{{On rejette }} H_0 \text{{ si }} Z_{{obs}} < z_{{\alpha}} = z_{{{format_prob_clean(resultats['alpha'])}}} = {resultats['quantile_critique']:.4f}"
             )
             symbole = "<" if resultats["rejet_H0"] else ">"
             st.latex(
                 rf"Z_{{obs}} = {resultats['statistique_test']:.4f} {symbole} {resultats['quantile_critique']:.4f}"
             )
+
         else:
-            st.write(
-                f"On rejette H₀ si Z_obs > z_(1-α) = z_({format_prob_clean(1-resultats['alpha'])}) = {resultats['quantile_critique']:.4f}."
+            st.latex(
+                rf"\text{{On rejette }} H_0 \text{{ si }} Z_{{obs}} > z_{{1-\alpha}} = z_{{{format_prob_clean(1-resultats['alpha'])}}} = {resultats['quantile_critique']:.4f}"
             )
             symbole = ">" if resultats["rejet_H0"] else "<"
             st.latex(
