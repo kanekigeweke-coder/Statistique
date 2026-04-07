@@ -59,9 +59,6 @@ def test_proportion_general(
     statistique = (p_hat - p0) / erreur_standard
 
     alpha_label = format_percent_clean(alpha)
-    alpha_sur_2_label = format_prob_clean(alpha / 2)
-    alpha_label_prob = format_prob_clean(alpha)
-    un_moins_alpha_label = format_prob_clean(1 - alpha)
 
     if alternative == "bilateral":
         quantile = norm.ppf(1 - alpha / 2)
@@ -74,15 +71,14 @@ def test_proportion_general(
                 rf"Comme $|Z_{{obs}}| = {abs(statistique):.4f} > {quantile:.4f} = z_{{\alpha/2}}$, "
                 rf"la statistique observée appartient à la zone de rejet. "
                 rf"On rejette donc $H_0$ au seuil de {alpha_label}. "
-                rf"La proportion est statistiquement différente de {p0}. "
-                rf"On dispose donc de suffisamment de preuves statistiques pour rejeter $H_0$."
+                rf"La proportion est statistiquement (ou significativement) différente de {p0}."
             )
         else:
             conclusion = (
                 rf"Comme $|Z_{{obs}}| = {abs(statistique):.4f} < {quantile:.4f} = z_{{\alpha/2}}$, "
                 rf"la statistique observée appartient à la zone de non rejet. "
                 rf"On ne rejette pas donc $H_0$ au seuil de {alpha_label}. "
-                rf"La proportion n'est pas statistiquement différente de {p0}."
+                rf"La proportion n'est pas statistiquement (ou significativement) différente de {p0}."
             )
 
     elif alternative == "left":
@@ -96,15 +92,14 @@ def test_proportion_general(
                 rf"Comme $Z_{{obs}} = {statistique:.4f} < {quantile:.4f} = z_{{\alpha}}$, "
                 rf"la statistique observée appartient à la zone de rejet. "
                 rf"On rejette donc $H_0$ au seuil de {alpha_label}. "
-                rf"La proportion est statistiquement inférieure à {p0}. "
-                rf"On dispose donc de suffisamment de preuves statistiques pour rejeter $H_0$."
+                rf"La proportion est statistiquement (ou significativement) inférieure à {p0}."
             )
         else:
             conclusion = (
                 rf"Comme $Z_{{obs}} = {statistique:.4f} > {quantile:.4f} = z_{{\alpha}}$, "
                 rf"la statistique observée appartient à la zone de non rejet. "
                 rf"On ne rejette pas donc $H_0$ au seuil de {alpha_label}. "
-                rf"La proportion n'est pas statistiquement inférieure à {p0}."
+                rf"La proportion n'est pas statistiquement (ou significativement) inférieure à {p0}."
             )
 
     else:
@@ -118,15 +113,14 @@ def test_proportion_general(
                 rf"Comme $Z_{{obs}} = {statistique:.4f} > {quantile:.4f} = z_{{1-\alpha}}$, "
                 rf"la statistique observée appartient à la zone de rejet. "
                 rf"On rejette donc $H_0$ au seuil de {alpha_label}. "
-                rf"La proportion est statistiquement supérieure à {p0}. "
-                rf"On dispose donc de suffisamment de preuves statistiques pour rejeter $H_0$."
+                rf"La proportion est statistiquement (ou significativement) supérieure à {p0}."
             )
         else:
             conclusion = (
                 rf"Comme $Z_{{obs}} = {statistique:.4f} < {quantile:.4f} = z_{{1-\alpha}}$, "
                 rf"la statistique observée appartient à la zone de non rejet. "
                 rf"On ne rejette pas donc $H_0$ au seuil de {alpha_label}. "
-                rf"La proportion n'est pas statistiquement supérieure à {p0}."
+                rf"La proportion n'est pas statistiquement (ou significativement) supérieure à {p0}."
             )
 
     return {
@@ -174,15 +168,11 @@ def tracer_distribution_proportion(resultats: dict):
         mask_C = (x >= -quantile) & (x <= quantile)
         mask_R = x >= quantile
 
-        ax.fill_between(
-            x, 0, y, where=mask_L, color="gray", alpha=0.5,
-            label=f"Zone de rejet (α/2 = {alpha_half_pct})"
-        )
+        ax.fill_between(x, 0, y, where=mask_L, color="gray", alpha=0.5,
+                        label=f"Zone de rejet (α/2 = {alpha_half_pct})")
         ax.fill_between(x, 0, y, where=mask_R, color="gray", alpha=0.5)
-        ax.fill_between(
-            x, 0, y, where=mask_C, color="lightblue", alpha=0.3,
-            label=f"Zone de non-rejet ({non_rejet_pct})"
-        )
+        ax.fill_between(x, 0, y, where=mask_C, color="lightblue", alpha=0.3,
+                        label=f"Zone de non-rejet ({non_rejet_pct})")
 
         ax.axvline(-quantile, color="black", linewidth=1.2, linestyle="--")
         ax.axvline(quantile, color="black", linewidth=1.2, linestyle="--")
@@ -202,14 +192,10 @@ def tracer_distribution_proportion(resultats: dict):
         mask_L = x <= quantile
         mask_C = x >= quantile
 
-        ax.fill_between(
-            x, 0, y, where=mask_L, color="gray", alpha=0.5,
-            label=f"Zone de rejet (α = {alpha_pct})"
-        )
-        ax.fill_between(
-            x, 0, y, where=mask_C, color="lightblue", alpha=0.3,
-            label=f"Zone de non-rejet ({non_rejet_pct})"
-        )
+        ax.fill_between(x, 0, y, where=mask_L, color="gray", alpha=0.5,
+                        label=f"Zone de rejet (α = {alpha_pct})")
+        ax.fill_between(x, 0, y, where=mask_C, color="lightblue", alpha=0.3,
+                        label=f"Zone de non-rejet ({non_rejet_pct})")
 
         ax.axvline(quantile, color="black", linewidth=1.2, linestyle="--")
         ax.text(quantile - 0.5, max(y) * 0.12, alpha_pct, fontsize=9, ha="center", color="dimgray")
@@ -225,14 +211,10 @@ def tracer_distribution_proportion(resultats: dict):
         mask_C = x <= quantile
         mask_R = x >= quantile
 
-        ax.fill_between(
-            x, 0, y, where=mask_R, color="gray", alpha=0.5,
-            label=f"Zone de rejet (α = {alpha_pct})"
-        )
-        ax.fill_between(
-            x, 0, y, where=mask_C, color="lightblue", alpha=0.3,
-            label=f"Zone de non-rejet ({non_rejet_pct})"
-        )
+        ax.fill_between(x, 0, y, where=mask_R, color="gray", alpha=0.5,
+                        label=f"Zone de rejet (α = {alpha_pct})")
+        ax.fill_between(x, 0, y, where=mask_C, color="lightblue", alpha=0.3,
+                        label=f"Zone de non-rejet ({non_rejet_pct})")
 
         ax.axvline(quantile, color="black", linewidth=1.2, linestyle="--")
         ax.text(quantile + 0.5, max(y) * 0.12, alpha_pct, fontsize=9, ha="center", color="dimgray")
